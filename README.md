@@ -16,6 +16,8 @@ Edit these variables in bot.py
   lastvid="Z9WQy9uEY8M"  put last video id here 
   intervel=5 put the time waiting intervel here
   comment="Put your text here"  edit this variable amnd put the required comment here.
+Remove contents in "bot.py-oauth2.json" before usage
+if you setup everything properly the bot will ask you to goto a link from your browser and login with your youtube account ( this is a one time only requirment)
 
 
 Helps
