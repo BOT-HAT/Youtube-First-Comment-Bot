@@ -82,7 +82,7 @@ while True:
       print(last)
       try:
         insert_comment(youtube, last, args.text)
-      except HttpError, e:
+      except HttpError as e:
         print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
       else:
         print "Comment Inserted"
