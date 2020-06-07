@@ -83,10 +83,10 @@ while True:
       try:
         insert_comment(youtube, last, args.text)
       except HttpError as e:
-        print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
+        print ("An HTTP error %d occurred:\n%s") % (e.resp.status, e.content)
       else:
-        print "Comment Inserted"
+        print ("Comment Inserted")
         break
     time.sleep(intervel)
     print("waiting......")
-    print "Cycle:", i
+    print ("Cycle:", i)
