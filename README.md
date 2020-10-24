@@ -14,9 +14,16 @@ project. Remember to enable YouTube Data API for that project. Add an OAuth Clie
 choose "Desktop app" from the drop-down menu on the next screen. After the client ID is created, download it by clicking
 on the download button. Rename the file to `client_secret.json` and place it in the project's root directory, which is
 in the same folder as this readme. Then, create a virtualenv environment and install google-api-python-client and
-oauth2client in this project's root directory. Finally, change the values in `config.json`. `id` is the channel id or
-playlist id, `interval` is the number of seconds between each query (put a number here, the string is just a
-placeholder), and `comment` is the comment to be posted.
+oauth2client in this project's root directory. Finally, create `config.json` using this as a template:
+```json
+{
+  "id": "replace with channel id or playlist id",
+  "interval": "replace with number of seconds per query as a number (not a string)",
+  "comment": "replace with the comment you want to post"
+}
+```
+`id` is the channel id or playlist id, `interval` is the number of seconds between each query (put a number here, the
+string is just a placeholder), and `comment` is the comment to be posted.
 
 ## Running
 Run `bot.py` with the virtualenv you've created. If this is the first time the program is run, or if the
