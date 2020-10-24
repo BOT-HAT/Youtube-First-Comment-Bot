@@ -2,91 +2,121 @@ import httplib2
 import os
 import sys
 import time
+import json
+from operator import itemgetter
 
-from apiclient.discovery import build_from_document
-from apiclient.errors import HttpError
+from googleapiclient.discovery import build_from_document
+from googleapiclient.errors import HttpError
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
-# ======== Configure the following variables ===========
-#uploads id
-cid="UUX6OQ3DkcsbYNE6v8uQQuVA"
-#last video id wMuYiLby3-s
-lastvid="Z9WQy9uEY8M"
-# waiting time intervel in seconds
-intervel=5
-#comment you need to post
-comment="Put your text here"
+# Configure these variables in config.json
+id, interval, comment, do_init_auth, client_secrets = itemgetter("id", "interval", "comment", "do_init_auth",
+                                                                 "client_secrets")(json.load(open("./config.json", "r"))
+                                                                                   )
 
-CLIENT_SECRETS_FILE = "./client_secrets.json"
+CLIENT_SECRET_DIR = os.path.join(os.path.dirname(__file__), "client_secret")
+OAUTH2_DIR = os.path.join(os.path.dirname(__file__), "oauth2")
 YOUTUBE_READ_WRITE_SSL_SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
-YOUTUBE_API_SERVICE_NAME = "youtube"
+YOUTUBE_API_SERVICE_NAME = "service"
 YOUTUBE_API_VERSION = "v3"
 MISSING_CLIENT_SECRETS_MESSAGE = """
 WARNING: Please configure OAuth 2.0
-To make this sample run you will need to populate the client_secrets.json file
+To make this sample run you will need to populate the client_secret json files
 found at:
    %s
 with information from the APIs Console
 https://console.developers.google.com
-For more information about the client_secrets.json file format, please visit:
+For more information about the client_secret.json file format, please visit:
 https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-""" % os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   CLIENT_SECRETS_FILE))
-def get_authenticated_service(args):
-  flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE, scope=YOUTUBE_READ_WRITE_SSL_SCOPE,
-    message=MISSING_CLIENT_SECRETS_MESSAGE)
+""" % os.path.abspath(CLIENT_SECRET_DIR)
+# converts id to playlistId and store in pid
+pid = "UU" + id[2:] if id[:2] == "UC" else id
+print "id:", id + ",", "pid:", pid
 
-  storage = Storage("%s-oauth2.json" % sys.argv[0])
-  credentials = storage.get()
 
-  if credentials is None or credentials.invalid:
-    credentials = run_flow(flow, storage, args)
-  with open("youtube-v3-discoverydocument.json", "r") as f:
-    doc = f.read()
-    return build_from_document(doc, http=credentials.authorize(httplib2.Http()))
+def authenticate_all(flags):
+    for i in range(0, len(client_secrets)):
+        print "Authenticating", client_secrets[i]
+        run_flow(flow_from_clientsecrets(os.path.join(CLIENT_SECRET_DIR, client_secrets[i] + ".json"),
+                                         scope=YOUTUBE_READ_WRITE_SSL_SCOPE, message=MISSING_CLIENT_SECRETS_MESSAGE),
+                 Storage(os.path.join(OAUTH2_DIR, client_secrets[i] + "-oauth2.json")), flags)
+
+
+def get_authenticated_service(flags, infoNum):
+    flow = flow_from_clientsecrets(os.path.join(CLIENT_SECRET_DIR, client_secrets[infoNum] + ".json"),
+                                   scope=YOUTUBE_READ_WRITE_SSL_SCOPE, message=MISSING_CLIENT_SECRETS_MESSAGE)
+
+    storage = Storage(os.path.join(OAUTH2_DIR, client_secrets[infoNum] + "-oauth2.json"))
+    credentials = storage.get()
+
+    if credentials is None or credentials.invalid:
+        credentials = run_flow(flow, storage, flags)
+    with open("youtube-v3-discoverydocument.json", "r") as f:
+        doc = f.read()
+        return build_from_document(doc, http=credentials.authorize(httplib2.Http()))
+
+
 def insert_comment(youtube, parent_id, text):
-  insert_result = youtube.commentThreads().insert(
-  part="snippet",
-  body={
-    "snippet": {
-      "videoId": parent_id,
-      "topLevelComment": {
-        "snippet": {
-          "textOriginal": text
-          }
+    insert_result = youtube.commentThreads().insert(
+        part="snippet",
+        body={
+            "snippet": {
+                "videoId": parent_id,
+                "topLevelComment": {
+                    "snippet": {
+                        "textOriginal": text
+                    }
+                }
+            }
         }
-      }
-    }
-  )
-  response = insert_result.execute()
-  print ("comment added")
-def lastvideo(youtube, cid):
-  request = youtube.playlistItems().list(
-    part="snippet",
-    playlistId=cid
     )
-  response = request.execute()
-  return(response["items"][0]["snippet"]["resourceId"]["videoId"])
+    response = insert_result.execute()
+    print ("comment added")
+
+
+def get_last_video(youtube, pid):
+    request = youtube.playlistItems().list(
+        part="snippet",
+        playlistId=pid
+    )
+    response = request.execute()
+    return False if response.get("error", False) else response["items"][0]["snippet"]["resourceId"]["videoId"]
+
+
 argparser.add_argument("--text", help="Required; text that will be used as comment.")
-args = argparser.parse_args()
-args.videoid=lastvid
-args.text=comment
-youtube = get_authenticated_service(args)
-i=0
+flags = argparser.parse_args()
+flags.text = comment
+if do_init_auth:
+    authenticate_all(flags)
+youtube = get_authenticated_service(flags, 0)
+last_video = get_last_video(youtube, pid)
+print "last_video:", last_video
+
+project = 0
+i = 0
 while True:
-    last=lastvideo(youtube,cid)
-    i=i+1
-    if(last!=lastvid):
-      print(last)
-      try:
-        insert_comment(youtube, last, args.text)
-      except HttpError, e:
-        print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
-      else:
-        print "Comment Inserted"
-        break
-    time.sleep(intervel)
+    current_last = get_last_video(youtube, pid)
+    if not current_last:
+        print "Quota for project", project, "has been reached."
+        project += 1
+        if project < len(client_secrets):
+            youtube = get_authenticated_service(flags, project)
+            continue
+        else:
+            print "No more projects. Quitting..."
+            break
+    i += 1
+    if current_last != last_video:
+        print "Current video:", current_last
+        try:
+            insert_comment(youtube, current_last, flags.text)
+        except HttpError, e:
+            print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
+        else:
+            print "Comment Inserted"
+            break
+    time.sleep(interval)
     print("waiting......")
     print "Cycle:", i
