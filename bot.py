@@ -83,12 +83,12 @@ print "last_video:", last_video
 
 i = 0
 while True:
-    last = get_last_video(youtube, pid)
+    current_last = get_last_video(youtube, pid)
     i += 1
-    if last != last_video:
-        print(last)
+    if current_last != last_video:
+        print current_last
         try:
-            insert_comment(youtube, last, flags.text)
+            insert_comment(youtube, current_last, flags.text)
         except HttpError, e:
             print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
         else:
