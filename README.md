@@ -35,13 +35,19 @@ environment and install google-api-python-client and oauth2client in this projec
 
 <details>
     <summary>Example:</summary>
-    
+
 ```json
 {
   "id": "UCBR8-60-B28hp2BmDPdntcQ",
   "interval": 5,
   "comment": "I'm the first to post!",
   "do_init_auth": true,
+  "duration": {
+    "hours": 2,
+    "minutes": 0,
+    "seconds": 0,
+    "dontStop": false
+  },
   "client_secrets": [
     "client_secret_1",
     "client_secret_2",
