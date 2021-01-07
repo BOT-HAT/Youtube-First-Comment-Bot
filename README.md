@@ -23,6 +23,12 @@ environment and install google-api-python-client and oauth2client in this projec
   "interval": "replace with number of seconds per query as a number (not a string)",
   "comment": "replace with the comment you want to post",
   "do_init_auth": "replace with a boolean indicating whether you want to authenticate (it is recommended that you set it to true for the first run and leave it false until you need to switch YouTube accounts)",
+  "duration": {
+    "hours": "hours you intend the bot to run (as a number, not string)",
+    "minutes": "minutes you intend the bot to run after the specified number of hours has passed (as a number, not string)",
+    "seconds": "seconds you intend the bot to run after the specified number of hours and minutes has passed (as a number, not string)",
+    "dontStop": "replace with a boolean indicating whether or not to ignore the specified duration and run indefinitely"
+  },
   "client_secrets": "replace with an array of the client ID file names without the file extensions"
 }
 ```

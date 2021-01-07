@@ -12,9 +12,10 @@ from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
 # Configure these variables in config.json
-id, interval, comment, do_init_auth, client_secrets = itemgetter("id", "interval", "comment", "do_init_auth",
-                                                                 "client_secrets")(json.load(open("./config.json", "r"))
-                                                                                   )
+id, interval, comment, do_init_auth, duration, client_secrets = itemgetter("id", "interval", "comment", "do_init_auth",
+                                                                           "duration", "client_secrets")(
+    json.load(open("./config.json", "r")))
+cycles = (((duration.get("hours", 0) * 60) + duration.get("minutes", 0)) * 60 + duration.get("seconds", 0)) / interval
 
 CLIENT_SECRET_DIR = os.path.join(os.path.dirname(__file__), "client_secret")
 OAUTH2_DIR = os.path.join(os.path.dirname(__file__), "oauth2")
@@ -90,33 +91,46 @@ flags = argparser.parse_args()
 flags.text = comment
 if do_init_auth:
     authenticate_all(flags)
-youtube = get_authenticated_service(flags, 0)
-last_video = get_last_video(youtube, pid)
-print "last_video:", last_video
 
 project = 0
-i = 0
-while True:
-    current_last = get_last_video(youtube, pid)
-    if not current_last:
+youtube = None
+last_video = None
+while youtube is None:
+    try:
+        youtube = get_authenticated_service(flags, project)
+        last_video = get_last_video(youtube, pid)
+    except:
         print "Quota for project", project, "has been reached."
         project += 1
-        if project < len(client_secrets):
-            youtube = get_authenticated_service(flags, project)
-            continue
-        else:
-            print "No more projects. Quitting..."
-            break
+        if project >= len(client_secrets):
+            print "Recycling projects..."
+            project = 0
+
+print "last_video:", last_video
+
+i = 0
+while i < cycles or duration.get("dontStop", False):
+    try:
+        current_last = get_last_video(youtube, pid)
+        if not current_last or True:
+            raise HttpError(403, "manually raised")
+        if current_last != last_video:
+            print "Current video:", current_last
+            try:
+                insert_comment(youtube, current_last, flags.text)
+            except HttpError as e:
+                print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
+            else:
+                print "Comment Inserted"
+                break
+    except:
+        print "Quota for project", project, "has been reached."
+        project += 1
+        if project >= len(client_secrets):
+            print "Recycling projects..."
+            project = 0
+        youtube = get_authenticated_service(flags, project)
     i += 1
-    if current_last != last_video:
-        print "Current video:", current_last
-        try:
-            insert_comment(youtube, current_last, flags.text)
-        except HttpError, e:
-            print "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
-        else:
-            print "Comment Inserted"
-            break
     time.sleep(interval)
     print("waiting......")
     print "Cycle:", i
