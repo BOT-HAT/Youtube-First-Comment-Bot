@@ -24,5 +24,11 @@ This bot checks a specified channel every specified intervel and if a new video 
 * To find last video go the the required channel and check the url of the latest upload an url may look like this https://www.youtube.com/watch?v=RjUlmco7v2M take the last string that is "RjUlmco7v2M" this is video id.
 * To set up a good time intervel you must consider several things eg youtube api quata limit system resources etc... if you planed to run this bot 24x7 then put the inyer vell as 20 to 25 seconds, if you are running this bot only for one or two hour you can put this intervel as 1 or 2 seconds. this is to prevent youtube api limit.
 
+## Development
+* For pinning requirements run in virtualenv
+```bash
+pip freeze -r unpinned-requirements.txt > requirements.txt
+```
+
 **Note**  
 Feel free to modify i have messed up with arguments in the last few section, the code still works but there is a lot of room for improvements.
