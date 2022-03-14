@@ -12,7 +12,7 @@ from oauth2client.tools import argparser, run_flow
 
 # ======== Configure the following variables ===========
 # uploads id
-cid = 'UUX6OQ3DkcsbYNE6v8uQQuVA'
+playlist_id = 'UUX6OQ3DkcsbYNE6v8uQQuVA'
 # last video id wMuYiLby3-s
 lastvid = 'Z9WQy9uEY8M'
 # waiting time intervel in seconds
@@ -69,8 +69,8 @@ def insert_comment(youtube, parent_id, text):
     print('comment added')
 
 
-def lastvideo(youtube, cid):
-    request = youtube.playlistItems().list(part='snippet', playlistId=cid)
+def lastvideo(youtube, playlist_id):
+    request = youtube.playlistItems().list(part='snippet', playlistId=playlist_id)
     response = request.execute()
     return response['items'][0]['snippet']['resourceId']['videoId']
 
@@ -82,7 +82,7 @@ args.text = comment
 youtube = get_authenticated_service(args)
 i = 0
 while True:
-    last = lastvideo(youtube, cid)
+    last = lastvideo(youtube, playlist_id)
     i = i + 1
     if last != lastvid:
         print(last)

@@ -12,7 +12,7 @@ This bot checks a specified channel every specified intervel and if a new video 
 1. Create an account and a api and a outh screen in google console
 2. Replace the file "client_secrets.json" with the downloaded Credentials json file from google console
 3. Edit these variables in bot.py
-    * cid="UUX6OQ3DkcsbYNE6v8uQQuVA" put uploads id of the required channel here.
+    * playlist_id="UUX6OQ3DkcsbYNE6v8uQQuVA" put uploads id of the required channel here.
     * lastvid="Z9WQy9uEY8M"  put last video id here 
     * intervel=5 put the time waiting intervel here
     * comment="Put your text here" edit this variable and put the required comment here.
