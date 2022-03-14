@@ -15,8 +15,8 @@ from oauth2client.tools import argparser, run_flow
 playlist_id = 'UUX6OQ3DkcsbYNE6v8uQQuVA'
 # last video id wMuYiLby3-s
 lastvid = 'Z9WQy9uEY8M'
-# waiting time intervel in seconds
-intervel = 5
+# waiting time interval in seconds
+interval = 5
 # comment you need to post
 comment = 'Put your text here'
 
@@ -93,6 +93,6 @@ while True:
         else:
             print('Comment Inserted')
             break
-    time.sleep(intervel)
+    time.sleep(interval)
     print('waiting......')
     print('Cycle:', i)
